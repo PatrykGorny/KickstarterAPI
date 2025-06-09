@@ -9,6 +9,8 @@ public class AppDbContext : IdentityDbContext<UserEntity>
     {
     }
 
+    public DbSet<KickstarterEntity> Kickstarters { get; set; }
+    
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);

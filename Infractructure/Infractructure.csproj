@@ -7,6 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="CsvHelper" Version="33.1.0" />
       <PackageReference Include="JWT" Version="11.0.0" />
       <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.4" />
       <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.4" />
@@ -22,6 +23,12 @@
 
     <ItemGroup>
       <ProjectReference Include="..\ApplicationCore\ApplicationCore.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Content Include="Data\kickstarter_projects.csv">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
     </ItemGroup>
 
 </Project>

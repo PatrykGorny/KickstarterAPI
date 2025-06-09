@@ -1,0 +1,5 @@
+@KickstarterAPI_HostAddress = http://localhost:5291
+
+GET {{KickstarterAPI_HostAddress}}/scalar/
+
+###

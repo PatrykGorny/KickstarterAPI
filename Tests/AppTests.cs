@@ -62,7 +62,7 @@ public class AppTests : IClassFixture<AppTestFactory<Program>>
         
         HttpRequestMessage request = new HttpRequestMessage
         {
-            RequestUri = new Uri("/api/books", UriKind.Relative),
+            RequestUri = new Uri("/api/kickstarter", UriKind.Relative),
             Method = HttpMethod.Get
         };
         request.Headers.Add("Authorization", $"Bearer {token}");
@@ -89,9 +89,9 @@ public class AppTests : IClassFixture<AppTestFactory<Program>>
 
 
     // [Fact]
-    // public async void TestBookControllerUnauthorized()
+    // public async void TestKickstarterControllerUnauthorized()
     // {
-    //     var response =await  _client.GetAsync("/api/books");
+    //     var response =await  _client.GetAsync("/api/Kickstarter");
     //     Assert.Equal( HttpStatusCode.Unauthorized,response.StatusCode);
     // }
 }

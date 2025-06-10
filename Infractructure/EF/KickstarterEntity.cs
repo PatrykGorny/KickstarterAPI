@@ -7,7 +7,7 @@ public class KickstarterEntity
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
-    public int ID { get; set; }
+    public long ID { get; set; }
     public string Name { get; set; }
     public string Category { get; set; }
     public string Subcategory { get; set; }

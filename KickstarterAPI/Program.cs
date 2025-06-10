@@ -18,6 +18,7 @@ public partial class Program
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
         builder.Services.AddIdentity<UserEntity, IdentityRole>()
             .AddEntityFrameworkStores<AppDbContext>();
+        builder.Services.AddAutoMapper(typeof(Program));
         // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
         builder.Services.AddSingleton<JwtSettings>();
         builder.Services.ConfigureJWT(new JwtSettings(builder.Configuration));
@@ -29,7 +30,11 @@ public partial class Program
         using (var scope = app.Services.CreateScope())
         {
             var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            dbContext.Database.Migrate();
+            var databaseProvider = dbContext.Database.ProviderName;
+            if (!string.Equals(databaseProvider, "Microsoft.EntityFrameworkCore.InMemory", StringComparison.OrdinalIgnoreCase))
+            {
+                dbContext.Database.Migrate();
+            }
             var csvPath = Path.Combine(AppContext.BaseDirectory, "Data", "kickstarter_projects.csv");
             var seeder = new KickstarterSeeder(dbContext);
             seeder.Seed(csvPath);

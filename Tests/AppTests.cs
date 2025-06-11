@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Text.Json.Nodes;
 using Infractructure.EF;
 using KickstarterAPI.Dto;
+using KickstarterAPI.Dto.Kickstarter;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestPlatform.TestHost;
@@ -86,12 +87,130 @@ public class AppTests : IClassFixture<AppTestFactory<Program>>
         Assert.NotNull(result);
         Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);
     }
+    
+    [Fact]
+    public async Task GetProjects_UnauthorizedWithoutToken()
+    {
+        var response = await _client.GetAsync("/api/kickstarter");
 
+        
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
 
-    // [Fact]
-    // public async void TestKickstarterControllerUnauthorized()
-    // {
-    //     var response =await  _client.GetAsync("/api/Kickstarter");
-    //     Assert.Equal( HttpStatusCode.Unauthorized,response.StatusCode);
-    // }
+    [Fact]
+    public async Task CreateProject_UnauthorizedWithoutToken()
+    {
+        var newProject = new KickstarterCreateDto
+        {
+            Name = "Unauthorized Project",
+            Category = "Games",
+            Subcategory = "Board Games",
+            Country = "USA",
+            Launched = DateTime.UtcNow,
+            Deadline = DateTime.UtcNow.AddDays(30),
+            Goal = 5000,
+            Pledged = 0,
+            Backers = 0,
+            State = "Live"
+        };
+
+       
+        var response = await _client.PostAsJsonAsync("/api/kickstarter", newProject);
+
+        
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task CreateProject_SavesToDatabase()
+    {
+        
+        var loginBody = new LoginDto
+        {
+            UserName = "admin",
+            Password = "1234!"
+        };
+        var loginResult = await _client.PostAsJsonAsync("/api/Users/login", loginBody);
+        var token = JsonNode.Parse(await loginResult.Content.ReadAsStringAsync())["token"].ToString();
+
+        
+        
+        var newProject = new KickstarterCreateDto
+        {
+            Name = "Test Project",
+            Category = "Tech",
+            Subcategory = "Software",
+            Country = "USA",
+            Launched = DateTime.UtcNow,
+            Deadline = DateTime.UtcNow.AddDays(30),
+            Goal = 1000,
+            Pledged = 0,
+            Backers = 0,
+            State = "Live"
+        };
+
+        var request = new HttpRequestMessage(HttpMethod.Post, "/api/Kickstarter")
+        {
+            Content = JsonContent.Create(newProject)
+        };
+        request.Headers.Add("Authorization", $"Bearer {token}");
+
+        var response = await _client.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+        using var scope = _app.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var projectInDb = context.Kickstarters.FirstOrDefault(p => p.Name == "Test Project");
+
+        Assert.NotNull(projectInDb);
+        
+        Assert.Equal("Tech", projectInDb.Category);
+        
+    }
+    
+    [Fact]
+    public async Task DeleteProject_RemovesFromDatabase()
+    {
+        using (var scope = _app.Services.CreateScope())
+        {
+            var scopedContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var project = new KickstarterEntity
+            {
+                ID = 99998,
+                Name = "Delete Me",
+                Category = "Music",
+                Subcategory = "Rock",
+                Country = "USA",
+                Launched = DateTime.UtcNow,
+                Deadline = DateTime.UtcNow.AddDays(5),
+                Goal = "555",
+                Pledged = 250,
+                Backers = 3,
+                State = "Live"
+            };
+            scopedContext.Kickstarters.Add(project);
+            scopedContext.SaveChanges();
+        }
+
+        
+        var login = await _client.PostAsJsonAsync("/api/users/login", new LoginDto
+        {
+            UserName = "admin",
+            Password = "1234!"
+        });
+        var token = JsonNode.Parse(await login.Content.ReadAsStringAsync())["token"].ToString();
+
+        
+        var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/kickstarter/99998");
+        request.Headers.Add("Authorization", $"Bearer {token}");
+        var result = await _client.SendAsync(request);
+        result.EnsureSuccessStatusCode();
+
+        
+        using (var scope = _app.Services.CreateScope())
+        {
+            var scopedContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var deleted = scopedContext.Kickstarters.Find(99998L); 
+            Assert.Null(deleted);
+        }
+    }
 }

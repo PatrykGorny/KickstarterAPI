@@ -64,7 +64,13 @@ public class KickstarterController : ControllerBase
     public async Task<ActionResult<KickstarterProjectDto>> CreateProject(KickstarterCreateDto dto)
     {
         var project = _mapper.Map<KickstarterEntity>(dto);
+        long maxId = await _context.Kickstarters
+            .OrderByDescending(p => p.ID)
+            .Select(p => p.ID)
+            .FirstOrDefaultAsync();
 
+        project.ID = maxId + 1;
+        
         _context.Kickstarters.Add(project);
         await _context.SaveChangesAsync();
 

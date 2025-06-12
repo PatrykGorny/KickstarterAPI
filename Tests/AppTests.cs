@@ -91,7 +91,6 @@ public class AppTests : IClassFixture<AppTestFactory<Program>>
     [Fact]
     public async Task RegisterUser_ShouldCreateNewUser()
     {
-        // Arrange
         var newUser = new RegisterDto
         {
             UserName = "testuser123",
@@ -99,14 +98,11 @@ public class AppTests : IClassFixture<AppTestFactory<Program>>
             Password = "StrongPass123!",
             ConfirmPassword = "StrongPass123!"
         };
-
-        // Act
+        
         var response = await _client.PostAsJsonAsync("/api/Users/register", newUser);
-
-        // Assert
+        
         Assert.True(response.IsSuccessStatusCode, $"Registration failed: {await response.Content.ReadAsStringAsync()}");
-
-        // Sprawdź czy użytkownik istnieje w bazie
+        
         using var scope = _app.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var user = db.Users.FirstOrDefault(u => u.UserName == "testuser123");
@@ -196,7 +192,6 @@ public class AppTests : IClassFixture<AppTestFactory<Program>>
     [Fact]
     public async Task DeleteProject_Authorized_ShouldReturnSuccess()
     {
-        // Arrange - zaloguj się i pobierz token
         var login = await _client.PostAsJsonAsync("/api/users/login", new LoginDto
         {
             UserName = "admin",

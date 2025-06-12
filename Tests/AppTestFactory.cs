@@ -35,8 +35,7 @@ public class AppTestFactory<TProgram> : WebApplicationFactory<TProgram> where TP
                 .AddEntityFrameworkInMemoryDatabase()
                 .AddDbContext<AppDbContext>((container, options) =>
                 {
-                    options.UseSqlServer(
-                        "Server=.\\SQLEXPRESS;Database=KickstarterAPI;Trusted_Connection=True;TrustServerCertificate=true;");
+                    options.UseInMemoryDatabase("AppTest").UseInternalServiceProvider(container);
                 });
         });
         builder.UseEnvironment("Development");

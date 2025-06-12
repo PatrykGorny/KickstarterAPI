@@ -79,11 +79,34 @@ public class KickstarterController : ControllerBase
             query = query.Where(p => p.State == filter.State);
 
         var totalCount = await query.CountAsync();
-        var projects = await query
-            .OrderBy(p => p.ID)
+        IQueryable<KickstarterEntity> sortedQuery = query;
+
+        if (!string.IsNullOrWhiteSpace(filter.SortBy))
+        {
+            bool ascending = filter.SortDirection?.ToLower() != "desc";
+            sortedQuery = filter.SortBy.ToLower() switch
+            {
+                "name" => ascending ? query.OrderBy(p => p.Name) : query.OrderByDescending(p => p.Name),
+                "category" => ascending ? query.OrderBy(p => p.Category) : query.OrderByDescending(p => p.Category),
+                "goal" => ascending ? query.OrderBy(p => p.Goal) : query.OrderByDescending(p => p.Goal),
+                "pledged" => ascending ? query.OrderBy(p => p.Pledged) : query.OrderByDescending(p => p.Pledged),
+                "backers" => ascending ? query.OrderBy(p => p.Backers) : query.OrderByDescending(p => p.Backers),
+                "launched" => ascending ? query.OrderBy(p => p.Launched) : query.OrderByDescending(p => p.Launched),
+                "deadline" => ascending ? query.OrderBy(p => p.Deadline) : query.OrderByDescending(p => p.Deadline),
+                "state" => ascending ? query.OrderBy(p => p.State) : query.OrderByDescending(p => p.State),
+                _ => query.OrderBy(p => p.ID)
+            };
+        }
+        else
+        {
+            sortedQuery = query.OrderBy(p => p.ID); 
+        }
+
+        var projects = await sortedQuery
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
+
 
         var result = new PaginatedResponse<KickstarterProjectDto>
         {

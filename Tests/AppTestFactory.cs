@@ -23,14 +23,6 @@ public class AppTestFactory<TProgram> : WebApplicationFactory<TProgram> where TP
 
             services.Remove(dbConnectionDescriptor);
 
-            // Create open SqliteConnection so EF won't automatically close it.
-            // services.AddSingleton<DbConnection>(container =>
-            // {
-            //     var connection = new SqliteConnection("Filename=:memory:");
-            //     connection.Open();
-            //     return connection;
-            // });
-
             services
                 .AddEntityFrameworkInMemoryDatabase()
                 .AddDbContext<AppDbContext>((container, options) =>

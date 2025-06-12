@@ -9,8 +9,8 @@ public class KickstarterProjectDto
     public string Country { get; set; }
     public DateTime Launched { get; set; }
     public DateTime Deadline { get; set; }
-    public decimal Goal { get; set; }
-    public decimal Pledged { get; set; }
+    public int Goal { get; set; }
+    public int Pledged { get; set; }
     public int Backers { get; set; }
     public string State { get; set; }
 }

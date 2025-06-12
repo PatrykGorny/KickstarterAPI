@@ -89,6 +89,33 @@ public class AppTests : IClassFixture<AppTestFactory<Program>>
     }
     
     [Fact]
+    public async Task RegisterUser_ShouldCreateNewUser()
+    {
+        // Arrange
+        var newUser = new RegisterDto
+        {
+            UserName = "testuser123",
+            Email = "testuser@example.com",
+            Password = "StrongPass123!",
+            ConfirmPassword = "StrongPass123!"
+        };
+
+        // Act
+        var response = await _client.PostAsJsonAsync("/api/Users/register", newUser);
+
+        // Assert
+        Assert.True(response.IsSuccessStatusCode, $"Registration failed: {await response.Content.ReadAsStringAsync()}");
+
+        // Sprawdź czy użytkownik istnieje w bazie
+        using var scope = _app.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var user = db.Users.FirstOrDefault(u => u.UserName == "testuser123");
+
+        Assert.NotNull(user);
+        Assert.Equal("testuser123", user.UserName);
+    }
+    
+    [Fact]
     public async Task GetProjects_UnauthorizedWithoutToken()
     {
         var response = await _client.GetAsync("/api/kickstarter");
@@ -166,32 +193,10 @@ public class AppTests : IClassFixture<AppTestFactory<Program>>
         Assert.Equal("Tech", projectInDb.Category);
         
     }
-    
     [Fact]
-    public async Task DeleteProject_RemovesFromDatabase()
+    public async Task DeleteProject_Authorized_ShouldReturnSuccess()
     {
-        using (var scope = _app.Services.CreateScope())
-        {
-            var scopedContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            var project = new KickstarterEntity
-            {
-                ID = 99998,
-                Name = "Delete Me",
-                Category = "Music",
-                Subcategory = "Rock",
-                Country = "USA",
-                Launched = DateTime.UtcNow,
-                Deadline = DateTime.UtcNow.AddDays(5),
-                Goal = "555",
-                Pledged = 250,
-                Backers = 3,
-                State = "Live"
-            };
-            scopedContext.Kickstarters.Add(project);
-            scopedContext.SaveChanges();
-        }
-
-        
+        // Arrange - zaloguj się i pobierz token
         var login = await _client.PostAsJsonAsync("/api/users/login", new LoginDto
         {
             UserName = "admin",
@@ -200,17 +205,49 @@ public class AppTests : IClassFixture<AppTestFactory<Program>>
         var token = JsonNode.Parse(await login.Content.ReadAsStringAsync())["token"].ToString();
 
         
-        var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/kickstarter/99998");
-        request.Headers.Add("Authorization", $"Bearer {token}");
-        var result = await _client.SendAsync(request);
-        result.EnsureSuccessStatusCode();
-
-        
+        long projectId;
         using (var scope = _app.Services.CreateScope())
         {
-            var scopedContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            var deleted = scopedContext.Kickstarters.Find(99998L); 
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+            long maxId = db.Kickstarters.Any() ? db.Kickstarters.Max(p => p.ID) : 0;
+            var project = new KickstarterEntity
+            {
+                ID = maxId + 1,
+                Name = "DeleteTest Project",
+                Category = "Art",
+                Subcategory = "Painting",
+                Country = "UK",
+                Launched = DateTime.UtcNow,
+                Deadline = DateTime.UtcNow.AddDays(15),
+                Goal = 1234,
+                Pledged = 123,
+                Backers = 2,
+                State = "Live"
+            };
+            db.Kickstarters.Add(project);
+            db.SaveChanges();
+            projectId = project.ID;
+        }
+
+     
+        var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/kickstarter/{projectId}");
+        request.Headers.Add("Authorization", $"Bearer {token}");
+
+        var response = await _client.SendAsync(request);
+
+       
+        Assert.True(response.IsSuccessStatusCode || response.StatusCode == HttpStatusCode.NoContent || response.StatusCode == HttpStatusCode.OK);
+
+        using (var scope = _app.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var deleted = db.Kickstarters.Find(projectId);
             Assert.Null(deleted);
         }
     }
+
+   
+   
+
 }

@@ -14,7 +14,7 @@ public class KickstarterEntity
     public string Country { get; set; }
     public DateTime Launched {get; set;}
     public DateTime Deadline { get; set; }
-    public string Goal {get; set;}
+    public int Goal {get; set;}
     public int Pledged {get; set;}
     public int Backers {get; set;}
     public string State {get; set;}

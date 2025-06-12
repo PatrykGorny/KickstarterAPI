@@ -21,10 +21,10 @@ public class KickstarterCreateDto
     [Required]
     public DateTime Deadline { get; set; }
 
-    [Range(1, double.MaxValue)]
-    public decimal Goal { get; set; }
+    
+    public int Goal { get; set; }
 
-    public decimal Pledged { get; set; } = 0;
+    public int Pledged { get; set; } = 0;
 
     public int Backers { get; set; } = 0;
 

@@ -21,25 +21,25 @@ The API exposes the following endpoints:
 
 - **Kickstarters**: 
   - `GET /api/Kickstarter`: Get all Kickstarter projects.
-  - **Parameters**:
-    - `ID optional`: Search by ID.
-    - `Name optional`: Search by Name.
-    - `Category optional`: Search by Category.
-    - `Subcategory optional`: Search by Subcategory.
-    - `Country optional`: Search by Country.
-    - `LaunchedFrom
-       LaunchedTo optional`: You can set the parameter to give min or max or range.
-    - `DeadlineFrom
-       DeadlineTo optional`: You can set the parameter to give min or max or range.
-    - `GoalMin
-       GoalMax optional`: You can set the parameter to give min or max or range.
-    - `PledgedMin
-       PledgedMax optional`: You can set the parameter to give min or max or range.
-    - `BackersMin
-       BackersMax optional`: You can set the parameter to give min or max or range.
-    - `State`: Search by status.
-    - `SortBy`: Sort by table names.
-    - `SortDirection`: `desc` or `asc`.
+    - **Parameters**:
+      - `ID optional`: Search by ID.
+      - `Name optional`: Search by Name.
+      - `Category optional`: Search by Category.
+      - `Subcategory optional`: Search by Subcategory.
+      - `Country optional`: Search by Country.
+      - `LaunchedFrom
+         LaunchedTo optional`: You can set the parameter to give min or max or range.
+      - `DeadlineFrom
+         DeadlineTo optional`: You can set the parameter to give min or max or range.
+      - `GoalMin
+         GoalMax optional`: You can set the parameter to give min or max or range.
+      - `PledgedMin
+         PledgedMax optional`: You can set the parameter to give min or max or range.
+      - `BackersMin
+         BackersMax optional`: You can set the parameter to give min or max or range.
+      - `State`: Search by status.
+      - `SortBy`: Sort by table names.
+      - `SortDirection`: `desc` or `asc`.
 
   - `GET /api/Kickstarters/{id}`: Get a specific Kickstarter project by ID.
   - `POST /api/Kickstarter`: Create a new Kickstarter project.

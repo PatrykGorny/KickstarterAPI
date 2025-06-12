@@ -23,13 +23,63 @@ public class KickstarterController : ControllerBase
     
     [HttpGet]
     [AllowAnonymous]
-    public async Task<ActionResult<PaginatedResponse<KickstarterProjectDto>>> GetProjects(int pageNumber = 1, int pageSize = 10)
+    public async Task<ActionResult<PaginatedResponse<KickstarterProjectDto>>> GetProjects([FromQuery] KickstarterFilterDto filter,int pageNumber = 1, int pageSize = 10)
     {
         if (pageNumber <= 0 || pageSize <= 0)
             return BadRequest("Page number and size must be greater than 0.");
 
-        var totalCount = await _context.Kickstarters.CountAsync();
-        var projects = await _context.Kickstarters
+        var query = _context.Kickstarters.AsQueryable();
+
+        if (filter.ID.HasValue)
+            query = query.Where(p => p.ID == filter.ID.Value);
+
+        if (!string.IsNullOrEmpty(filter.Name))
+            query = query.Where(p => p.Name.Contains(filter.Name));
+
+        if (!string.IsNullOrEmpty(filter.Category))
+            query = query.Where(p => p.Category == filter.Category);
+
+        if (!string.IsNullOrEmpty(filter.Subcategory))
+            query = query.Where(p => p.Subcategory == filter.Subcategory);
+
+        if (!string.IsNullOrEmpty(filter.Country))
+            query = query.Where(p => p.Country == filter.Country);
+
+        if (filter.LaunchedFrom.HasValue)
+            query = query.Where(p => p.Launched >= filter.LaunchedFrom.Value);
+
+        if (filter.LaunchedTo.HasValue)
+            query = query.Where(p => p.Launched <= filter.LaunchedTo.Value);
+
+        if (filter.DeadlineFrom.HasValue)
+            query = query.Where(p => p.Deadline >= filter.DeadlineFrom.Value);
+
+        if (filter.DeadlineTo.HasValue)
+            query = query.Where(p => p.Deadline <= filter.DeadlineTo.Value);
+
+        if (filter.GoalMin.HasValue)
+            query = query.Where(p => p.Goal >= filter.GoalMin.Value);
+
+        if (filter.GoalMax.HasValue)
+            query = query.Where(p => p.Goal <= filter.GoalMax.Value);
+
+        if (filter.PledgedMin.HasValue)
+            query = query.Where(p => p.Pledged >= filter.PledgedMin.Value);
+
+        if (filter.PledgedMax.HasValue)
+            query = query.Where(p => p.Pledged <= filter.PledgedMax.Value);
+
+        if (filter.BackersMin.HasValue)
+            query = query.Where(p => p.Backers >= filter.BackersMin.Value);
+
+        if (filter.BackersMax.HasValue)
+            query = query.Where(p => p.Backers <= filter.BackersMax.Value);
+
+        if (!string.IsNullOrEmpty(filter.State))
+            query = query.Where(p => p.State == filter.State);
+
+        var totalCount = await query.CountAsync();
+        var projects = await query
             .OrderBy(p => p.ID)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
@@ -45,6 +95,7 @@ public class KickstarterController : ControllerBase
 
         return Ok(result);
     }
+   
 
     [HttpGet("{id}")]
     [AllowAnonymous]
